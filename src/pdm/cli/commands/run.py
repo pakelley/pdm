@@ -169,21 +169,7 @@ class TaskRunner:
         ]
         project_env = project.environment
         this_path = project_env.get_paths()["scripts"]
-        python_root = os.path.dirname(project.python.executable)
-        new_path = os.pathsep.join(
-            [this_path, process_env.get("PATH", ""), python_root]
-        )
-        process_env.update(
-            {
-                "PYTHONPATH": os.pathsep.join(pythonpath),
-                "PATH": new_path,
-                "PDM_PROJECT_ROOT": str(project.root),
-            }
-        )
-        if project_env.packages_path:
-            process_env.update({"PEP582_PACKAGES": str(project_env.packages_path)})
-        if project_env.venv_path:
-            process_env.update({"VIRTUAL_ENV": str(project_env.venv_path)})
+        process_env.update(project_env.process_env)
         if env:
             process_env.update(env)
         if shell:
@@ -206,7 +192,7 @@ class TaskRunner:
                 os.path.expandvars(arg) for arg in [expanded_command] + args
             ]
             if (
-                not project_env.is_global
+                project_env.is_local
                 and not site_packages
                 and (
                     os.path.basename(real_command).startswith("python")

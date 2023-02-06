@@ -33,13 +33,13 @@ from pdm.cli.utils import (
     set_env_in_reg,
     translate_groups,
 )
+from pdm.environments import BareEnvironment, PythonLocalEnvironment
 from pdm.exceptions import NoPythonVersion, PdmUsageError, ProjectError
 from pdm.formats import FORMATS
 from pdm.formats.base import array_of_inline_tables, make_array, make_inline_table
 from pdm.models.backends import DEFAULT_BACKEND, BuildBackend
 from pdm.models.caches import JSONFileCache
 from pdm.models.candidates import Candidate
-from pdm.models.environment import BareEnvironment
 from pdm.models.python import PythonInfo
 from pdm.models.requirements import Requirement, parse_requirement, strip_extras
 from pdm.models.specifiers import get_specifier
@@ -670,7 +670,7 @@ def do_use(
     if (
         old_python
         and old_python.executable != selected_python.executable
-        and not project.environment.is_global
+        and isinstance(project.environment, PythonLocalEnvironment)
     ):
         project.core.ui.echo("Updating executable scripts...", style="primary")
         project.environment.update_shebangs(selected_python.executable.as_posix())

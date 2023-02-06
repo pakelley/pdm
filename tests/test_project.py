@@ -7,6 +7,7 @@ import pytest
 from packaging.version import parse
 
 from pdm.cli.commands.venv.utils import get_venv_python
+from pdm.environments import PythonEnvironment
 from pdm.exceptions import PdmException
 from pdm.utils import cd
 
@@ -109,7 +110,8 @@ def test_project_sources_env_var_expansion(project, monkeypatch):
 
 def test_global_project(tmp_path, core):
     project = core.create_project(tmp_path, True)
-    assert project.environment.is_global
+    assert project.is_global
+    assert isinstance(project.environment, PythonEnvironment)
 
 
 def test_auto_global_project(tmp_path, core):
@@ -135,16 +137,7 @@ def test_project_use_venv(project):
         env.interpreter.executable
         == project.root / "venv" / scripts / f"python{suffix}"
     )
-    assert env.is_global
-
-
-def test_project_packages_path(project):
-    packages_path = project.environment.packages_path
-    version = ".".join(map(str, sys.version_info[:2]))
-    if os.name == "nt" and sys.maxsize <= 2**32:
-        assert packages_path.name == version + "-32"
-    else:
-        assert packages_path.name == version
+    assert not env.is_local
 
 
 def test_project_auto_detect_venv(project):
@@ -159,7 +152,7 @@ def test_project_auto_detect_venv(project):
         project.root / "test_venv" / scripts / f"python{suffix}"
     ).as_posix()
 
-    assert project.environment.is_global
+    assert not project.environment.is_local
 
 
 @pytest.mark.path

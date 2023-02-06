@@ -21,7 +21,7 @@ from pdm.utils import cd, normalize_name, url_without_fragments
 
 if TYPE_CHECKING:
     from pdm._types import CandidateInfo, RepositoryConfig, SearchResult
-    from pdm.models.environment import Environment
+    from pdm.environments import BaseEnvironment
 
 ALLOW_ALL_PYTHON = PySpecSet()
 T = TypeVar("T", bound="BaseRepository")
@@ -47,7 +47,7 @@ class BaseRepository:
     def __init__(
         self,
         sources: list[RepositoryConfig],
-        environment: Environment,
+        environment: BaseEnvironment,
         ignore_compatibility: bool = True,
     ) -> None:
         """
@@ -381,7 +381,7 @@ class LockedRepository(BaseRepository):
         self,
         lockfile: Mapping[str, Any],
         sources: list[RepositoryConfig],
-        environment: Environment,
+        environment: BaseEnvironment,
     ) -> None:
         super().__init__(sources, environment, ignore_compatibility=False)
         self.packages: dict[tuple, Candidate] = {}

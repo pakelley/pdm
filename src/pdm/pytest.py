@@ -53,11 +53,11 @@ from pdm.cli.actions import do_init
 from pdm.cli.hooks import HookManager
 from pdm.compat import Protocol
 from pdm.core import Core
+from pdm.environments import BaseEnvironment, PrefixEnvironment
 from pdm.exceptions import CandidateInfoNotFound
 from pdm.installers.installers import install_wheel
 from pdm.models.backends import get_backend
 from pdm.models.candidates import Candidate
-from pdm.models.environment import Environment, PrefixEnvironment
 from pdm.models.repositories import BaseRepository
 from pdm.models.requirements import (
     Requirement,
@@ -156,7 +156,10 @@ class TestRepository(BaseRepository):
     """
 
     def __init__(
-        self, sources: list[RepositoryConfig], environment: Environment, pypi_json: Path
+        self,
+        sources: list[RepositoryConfig],
+        environment: BaseEnvironment,
+        pypi_json: Path,
     ):
         super().__init__(sources, environment)
         self._pypi_data: dict[str, Any] = {}
@@ -337,7 +340,7 @@ def build_env(
     """
     d = tmp_path_factory.mktemp("pdm-test-env")
     p = Core().create_project(d)
-    env = PrefixEnvironment(p, str(d))
+    env = PrefixEnvironment(p, prefix=str(d))
     for wheel in build_env_wheels:
         install_wheel(str(wheel), env)
     return d
@@ -414,7 +417,7 @@ def project_no_init(
         tmp_path, global_config=test_home.joinpath("config.toml").as_posix()
     )
     p.global_config["venv.location"] = str(tmp_path / "venvs")
-    mocker.patch("pdm.models.environment.PDMSession", pdm_session)
+    mocker.patch("pdm.environments.base.PDMSession", pdm_session)
     mocker.patch(
         "pdm.builders.base.EnvBuilder.get_shared_env", return_value=str(build_env)
     )
@@ -465,7 +468,7 @@ def working_set(mocker: MockerFixture, repository: TestRepository) -> MockWorkin
         a mock working set
     """
     rv = MockWorkingSet()
-    mocker.patch.object(Environment, "get_working_set", return_value=rv)
+    mocker.patch.object(BaseEnvironment, "get_working_set", return_value=rv)
 
     def install(candidate: Candidate) -> None:
         key = normalize_name(candidate.name)  # type: ignore

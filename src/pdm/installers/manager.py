@@ -9,8 +9,8 @@ from pdm.installers.uninstallers import BaseRemovePaths, StashedRemovePaths
 
 if TYPE_CHECKING:
     from pdm.compat import Distribution
+    from pdm.environments import BaseEnvironment
     from pdm.models.candidates import Candidate
-    from pdm.models.environment import Environment
 
 
 class InstallManager:
@@ -20,7 +20,7 @@ class InstallManager:
     NO_CACHE_PACKAGES = ["editables"]
 
     def __init__(
-        self, environment: Environment, *, use_install_cache: bool = False
+        self, environment: BaseEnvironment, *, use_install_cache: bool = False
     ) -> None:
         self.environment = environment
         self.use_install_cache = use_install_cache
